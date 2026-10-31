@@ -39,3 +39,7 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# environment variables (the real file never goes to Git)
+.env
+.env.local
