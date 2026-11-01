@@ -12,3 +12,5 @@
 - Archivos y commit: estructura de carpetas, .env.example, docs/AI_LOG.md
 - Verificación: El proyecto arranca con npx expo start y el push a GitHub funcionó
 - Aprendizaje: ...
+
+Entrada #2 en docs/AI_LOG.md (objetivo: crear firebase.js; prompt tal cual; archivo src/config/firebase.js; hash del commit, que ves con git log -1). La subes con la siguiente rama.
