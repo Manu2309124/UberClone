@@ -4,6 +4,7 @@ import PlaceholderScreen from "../components/PlaceholderScreen";
 import PersonalDataScreen from "../screens/PersonalDataScreen";
 import VehicleScreen from "../screens/VehicleScreen";
 import { RegistrationProvider } from "../context/RegistrationContext";
+import DocumentsScreen from "../screens/DocumentsScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -13,7 +14,8 @@ export default function RegisterTabs() {
       <Tab.Navigator>
         <Tab.Screen name="Datos personales" component={PersonalDataScreen} />
         <Tab.Screen name="Vehículo" component={VehicleScreen} />
-        <Tab.Screen name="Documentos" component={PlaceholderScreen} />
+
+        <Tab.Screen name="Documentos" component={DocumentsScreen} />
       </Tab.Navigator>
     </RegistrationProvider>
   );

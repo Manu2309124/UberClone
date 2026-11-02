@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #6
+// AI-assisted: see docs/AI_LOG.md #7
 import {
   createContext,
   useContext,
@@ -8,6 +8,7 @@ import {
 } from "react";
 import { validatePersonal } from "../utils/validators";
 import { validateVehicle } from "../utils/vehicleValidators";
+import { validateDocuments } from "../utils/documentValidators";
 
 const RegistrationContext = createContext(null);
 
@@ -35,9 +36,22 @@ const initialVehicle = {
   vehiclePhotoUri: null,
 };
 
+const initialDocuments = {
+  licenseNumber: "",
+  licensePhotoUri: null,
+  licenseExpiry: null,
+  soatPhotoUri: null,
+  soatExpiry: null,
+  inspectionPhotoUri: null,
+  inspectionExpiry: null,
+  mercadoPagoEmail: "",
+  acceptedTerms: false,
+};
+
 export function RegistrationProvider({ children }) {
   const [personal, setPersonal] = useState(initialPersonal);
   const [vehicle, setVehicle] = useState(initialVehicle);
+  const [documents, setDocuments] = useState(initialDocuments);
   const [touched, setTouched] = useState({});
 
   const setPersonalField = useCallback((field, value) => {
@@ -48,15 +62,25 @@ export function RegistrationProvider({ children }) {
     setVehicle((prev) => ({ ...prev, [field]: value }));
   }, []);
 
+  const setDocumentField = useCallback((field, value) => {
+    setDocuments((prev) => ({ ...prev, [field]: value }));
+  }, []);
+
   const touchField = useCallback((field) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
   }, []);
 
   const personalErrors = useMemo(() => validatePersonal(personal), [personal]);
   const vehicleErrors = useMemo(() => validateVehicle(vehicle), [vehicle]);
+  // The inspection requirement depends on the vehicle year (tab 2)
+  const documentErrors = useMemo(
+    () => validateDocuments(documents, vehicle.year),
+    [documents, vehicle.year],
+  );
 
   const isPersonalValid = Object.keys(personalErrors).length === 0;
   const isVehicleValid = Object.keys(vehicleErrors).length === 0;
+  const isDocumentsValid = Object.keys(documentErrors).length === 0;
 
   return (
     <RegistrationContext.Provider
@@ -69,6 +93,10 @@ export function RegistrationProvider({ children }) {
         setVehicleField,
         vehicleErrors,
         isVehicleValid,
+        documents,
+        setDocumentField,
+        documentErrors,
+        isDocumentsValid,
         touched,
         touchField,
       }}
