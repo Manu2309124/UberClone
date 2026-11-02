@@ -1,7 +1,8 @@
-// AI-assisted: see docs/AI_LOG.md #5
+// AI-assisted: see docs/AI_LOG.md #6
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import PlaceholderScreen from "../components/PlaceholderScreen";
 import PersonalDataScreen from "../screens/PersonalDataScreen";
+import VehicleScreen from "../screens/VehicleScreen";
 import { RegistrationProvider } from "../context/RegistrationContext";
 
 const Tab = createBottomTabNavigator();
@@ -11,7 +12,7 @@ export default function RegisterTabs() {
     <RegistrationProvider>
       <Tab.Navigator>
         <Tab.Screen name="Datos personales" component={PersonalDataScreen} />
-        <Tab.Screen name="Vehículo" component={PlaceholderScreen} />
+        <Tab.Screen name="Vehículo" component={VehicleScreen} />
         <Tab.Screen name="Documentos" component={PlaceholderScreen} />
       </Tab.Navigator>
     </RegistrationProvider>
