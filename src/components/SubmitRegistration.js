@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #8
+// AI-assisted: see docs/AI_LOG.md #12
 import { useState } from "react";
 import {
   View,
@@ -11,18 +11,25 @@ import { useRegistration } from "../context/RegistrationContext";
 import { registerDriver } from "../services/registerDriver";
 
 export default function SubmitRegistration() {
-  const { personal, vehicle, isPersonalValid, isVehicleValid } =
-    useRegistration();
+  const {
+    personal,
+    vehicle,
+    documents,
+    isPersonalValid,
+    isVehicleValid,
+    isDocumentsValid,
+  } = useRegistration();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const canSubmit = isPersonalValid && isVehicleValid && !loading;
+  const canSubmit =
+    isPersonalValid && isVehicleValid && isDocumentsValid && !loading;
 
   const onSubmit = async () => {
     setLoading(true);
     setMessage("");
     try {
-      await registerDriver(personal, vehicle);
+      await registerDriver(personal, vehicle, documents);
       setMessage("Registro enviado. Tu cuenta está pendiente de aprobación.");
     } catch (e) {
       if (e.code === "auth/email-already-in-use")
