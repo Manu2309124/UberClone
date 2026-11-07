@@ -1,18 +1,19 @@
-// AI-assisted: see docs/AI_LOG.md #11
+// AI-assisted: see docs/AI_LOG.md #12
 import { View } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import PersonalDataScreen from "../screens/PersonalDataScreen";
 import VehicleScreen from "../screens/VehicleScreen";
+import DocumentsScreen from "../screens/DocumentsScreen";
 import SubmitRegistration from "../components/SubmitRegistration";
 import { RegistrationProvider } from "../context/RegistrationContext";
 
 const Tab = createBottomTabNavigator();
 
-// Icon name for each tab: filled when active, outline when inactive
 const ICONS = {
   "Datos personales": { active: "person", inactive: "person-outline" },
   Vehículo: { active: "car", inactive: "car-outline" },
+  Documentos: { active: "document-text", inactive: "document-text-outline" },
 };
 
 export default function RegisterTabs() {
@@ -37,6 +38,7 @@ export default function RegisterTabs() {
         >
           <Tab.Screen name="Datos personales" component={PersonalDataScreen} />
           <Tab.Screen name="Vehículo" component={VehicleScreen} />
+          <Tab.Screen name="Documentos" component={DocumentsScreen} />
         </Tab.Navigator>
         <SubmitRegistration />
       </View>
