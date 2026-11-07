@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #13
+// AI-assisted: see docs/AI_LOG.md #14
 import { useState, useEffect } from "react";
 import {
   View,
@@ -13,6 +13,9 @@ import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useDriverProfile } from "../hooks/useDriverProfile";
 import { useDriverLocation } from "../hooks/useDriverLocation";
+import { useTripRequests } from "../hooks/useTripRequests";
+import TripRequestCard from "../components/TripRequestCard";
+import { createFakeTrip, acceptTrip, rejectTrip } from "../services/trips";
 import { useAuth } from "../context/AuthContext";
 
 export default function HomeScreen() {
@@ -25,6 +28,10 @@ export default function HomeScreen() {
     user?.uid,
     available && approved,
   );
+
+  // Trip requests are only listened to while the driver is available
+  const requests = useTripRequests(available && approved);
+  const currentRequest = requests[0] ?? null;
 
   // If approval is lost, force "not available"
   useEffect(() => {
@@ -83,6 +90,21 @@ export default function HomeScreen() {
           </Text>
         ) : null}
         {error ? <Text style={styles.hint}>{error}</Text> : null}
+
+        {currentRequest ? (
+          <TripRequestCard
+            trip={currentRequest}
+            onAccept={(t) => acceptTrip(t.id, user.uid)}
+            onReject={(t) => rejectTrip(t.id)}
+          />
+        ) : null}
+
+        {available ? (
+          <Button
+            title="Simular pasajero"
+            onPress={() => createFakeTrip("economy")}
+          />
+        ) : null}
 
         <Button title="Cerrar sesión" onPress={logout} />
       </View>
