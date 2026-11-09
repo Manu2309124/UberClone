@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #15
+// AI-assisted: see docs/AI_LOG.md #16
 import {
   addDoc,
   collection,
@@ -61,4 +61,13 @@ export function updateTripStatus(tripId, status) {
   const extra =
     status === "completed" ? { completedAt: serverTimestamp() } : {};
   return updateDoc(doc(db, "trips", tripId), { status, ...extra });
+}
+
+// Cash payment: the driver confirms the money was received.
+export function markPaidCash(tripId) {
+  return updateDoc(doc(db, "trips", tripId), {
+    status: "paid",
+    paymentStatus: "cash",
+    paidAt: serverTimestamp(),
+  });
 }

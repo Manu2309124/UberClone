@@ -1,22 +1,37 @@
-// AI-assisted: see docs/AI_LOG.md #15
-import { View, Text, StyleSheet } from "react-native";
+// AI-assisted: see docs/AI_LOG.md #16
+import { View, Text, Button, StyleSheet } from "react-native";
+import { markPaidCash } from "../services/trips";
+
+const money = (n) => `$${n.toLocaleString("es-CO")}`;
 
 export default function TripSummaryScreen({ trip }) {
-  const money = (n) => `$${n.toLocaleString("es-CO")}`;
+  const isCash = trip.paymentMethod === "cash";
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Viaje finalizado</Text>
-      <Text>Tarifa: {money(trip.fare)}</Text>
+      <Text>Tarifa final: {money(trip.fare)}</Text>
       <Text>
-        Comisión ({trip.commissionRate * 100} %): {money(trip.commission)}
+        Comisión ({Math.round(trip.commissionRate * 100)} %):{" "}
+        {money(trip.commission)}
       </Text>
+      {trip.tip > 0 ? <Text>Propina: {money(trip.tip)}</Text> : null}
       <Text style={styles.earn}>
         Ganancia neta: {money(trip.driverEarnings)}
       </Text>
-      <Text>Pago: {trip.paymentMethod}</Text>
-      <Text style={styles.hint}>
-        El cobro se completa en el siguiente bloque.
-      </Text>
+      <Text>Método de pago: {isCash ? "Efectivo" : trip.paymentMethod}</Text>
+      <Text>Estado del pago: {trip.paymentStatus ?? "Pendiente"}</Text>
+
+      {isCash ? (
+        <Button
+          title="Cobro recibido (efectivo)"
+          onPress={() => markPaidCash(trip.id)}
+        />
+      ) : (
+        <Text style={styles.hint}>
+          Esperando la confirmación de la pasarela de pago...
+        </Text>
+      )}
     </View>
   );
 }
