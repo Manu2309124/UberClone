@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #14
+// AI-assisted: see docs/AI_LOG.md #15
 import { useState, useEffect } from "react";
 import {
   View,
@@ -14,7 +14,10 @@ import { db } from "../config/firebase";
 import { useDriverProfile } from "../hooks/useDriverProfile";
 import { useDriverLocation } from "../hooks/useDriverLocation";
 import { useTripRequests } from "../hooks/useTripRequests";
+import { useActiveTrip } from "../hooks/useActiveTrip";
 import TripRequestCard from "../components/TripRequestCard";
+import ActiveTripScreen from "./ActiveTripScreen";
+import TripSummaryScreen from "./TripSummaryScreen";
 import { createFakeTrip, acceptTrip, rejectTrip } from "../services/trips";
 import { useAuth } from "../context/AuthContext";
 
@@ -33,6 +36,9 @@ export default function HomeScreen() {
   const requests = useTripRequests(available && approved);
   const currentRequest = requests[0] ?? null;
 
+  // Trip the driver is currently working on (accepted -> completed)
+  const activeTrip = useActiveTrip(user?.uid);
+
   // If approval is lost, force "not available"
   useEffect(() => {
     if (!approved && available) setAvailable(false);
@@ -48,6 +54,11 @@ export default function HomeScreen() {
   };
 
   if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" />;
+
+  // Active trip screens replace the home screen
+  if (activeTrip?.status === "completed")
+    return <TripSummaryScreen trip={activeTrip} />;
+  if (activeTrip) return <ActiveTripScreen trip={activeTrip} />;
 
   const region = location
     ? { ...location, latitudeDelta: 0.01, longitudeDelta: 0.01 }

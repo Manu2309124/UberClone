@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #14
+// AI-assisted: see docs/AI_LOG.md #15
 import {
   addDoc,
   collection,
@@ -54,4 +54,11 @@ export function acceptTrip(tripId, driverId) {
 
 export function rejectTrip(tripId) {
   return updateDoc(doc(db, "trips", tripId), { status: "rejected" });
+}
+
+// Moves the trip to the next state. Saves completedAt when it finishes.
+export function updateTripStatus(tripId, status) {
+  const extra =
+    status === "completed" ? { completedAt: serverTimestamp() } : {};
+  return updateDoc(doc(db, "trips", tripId), { status, ...extra });
 }
