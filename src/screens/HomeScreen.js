@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #15
+// AI-assisted: see docs/AI_LOG.md #19
 import { useState, useEffect } from "react";
 import {
   View,
@@ -23,7 +23,7 @@ import { useAuth } from "../context/AuthContext";
 
 export default function HomeScreen() {
   const { profile, loading } = useDriverProfile();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [available, setAvailable] = useState(false);
 
   const approved = profile?.status === "approved";
@@ -116,8 +116,6 @@ export default function HomeScreen() {
             onPress={() => createFakeTrip("economy")}
           />
         ) : null}
-
-        <Button title="Cerrar sesión" onPress={logout} />
       </View>
     </View>
   );
