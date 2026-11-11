@@ -2,14 +2,15 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import admin from "firebase-admin";
+import { initializeApp, cert } from "firebase-admin/app";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { readFileSync } from "node:fs";
 
 const serviceAccount = JSON.parse(
   readFileSync(process.env.GOOGLE_SERVICE_ACCOUNT_PATH, "utf8"),
 );
-admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-const db = admin.firestore();
+initializeApp({ credential: cert(serviceAccount) });
+const db = getFirestore();
 
 const MP = "https://api.mercadopago.com";
 const mpHeaders = {
@@ -84,7 +85,7 @@ app.post("/webhook", async (req, res) => {
         paymentMethod: "mercadopago",
         paymentStatus: "approved",
         paymentId: String(paymentId),
-        paidAt: admin.firestore.FieldValue.serverTimestamp(),
+        paidAt: FieldValue.serverTimestamp(),
       });
   } catch (e) {
     console.log("webhook error", e);
