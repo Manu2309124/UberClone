@@ -111,10 +111,16 @@ export default function HomeScreen() {
         ) : null}
 
         {available ? (
-          <Button
-            title="Simular pasajero"
-            onPress={() => createFakeTrip("economy")}
-          />
+          <>
+            <Button
+              title="Simular pasajero (efectivo)"
+              onPress={() => createFakeTrip("economy", "cash")}
+            />
+            <Button
+              title="Simular pasajero (Mercado Pago)"
+              onPress={() => createFakeTrip("economy", "mercadopago")}
+            />
+          </>
         ) : null}
       </View>
     </View>

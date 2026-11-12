@@ -11,7 +11,10 @@ import { calculateFare } from "../utils/calculateFare";
 import { PRICING } from "../config/pricing";
 
 // Creates a fake passenger request so the driver app can be tested.
-export async function createFakeTrip(category = "economy") {
+export async function createFakeTrip(
+  category = "economy",
+  paymentMethod = "cash",
+) {
   const distanceKm = 8.5;
   const durationMin = 22;
   const { fare, commission, driverEarnings } = calculateFare({
@@ -37,7 +40,7 @@ export async function createFakeTrip(category = "economy") {
     distanceKm,
     durationMin,
     category,
-    paymentMethod: "cash",
+    paymentMethod,
     fare,
     commission,
     tip: 0,

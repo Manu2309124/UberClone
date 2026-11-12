@@ -65,6 +65,7 @@ Los nombres están en `.env.example`. El archivo `.env` real **no se sube a Git*
 | `EXPO_PUBLIC_FIREBASE_APP_ID`              | ID de la app                                  |
 | `EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME`        | Cloud name de Cloudinary                      |
 | `EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET`     | Upload preset de Cloudinary (modo _unsigned_) |
+| `EXPO_PUBLIC_BACKEND_URL`                  | URL pública del backend de pagos (`backend/`) |
 
 Solo se usan credenciales de prueba. Las llaves secretas (por ejemplo, las de la pasarela de pagos en la entrega final) irán únicamente en un backend, nunca en la app.
 
