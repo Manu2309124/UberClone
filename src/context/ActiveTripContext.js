@@ -7,6 +7,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "./AuthContext";
 import { useActiveTrip } from "../hooks/useActiveTrip";
 
@@ -14,21 +15,39 @@ const ActiveTripContext = createContext(null);
 
 // Shares the trip the driver is working on with every screen, and keeps the
 // payment summary open after the trip is paid until the driver closes it.
+// The open summary is saved in AsyncStorage (only a trip id, nothing
+// sensitive) so it survives a reload or iOS closing the app while the
+// passenger pays in the browser.
 export function ActiveTripProvider({ children }) {
   const { user } = useAuth();
   const activeTrip = useActiveTrip(user?.uid);
   const [summaryTripId, setSummaryTripId] = useState(null);
+  const storageKey = user ? `openSummary:${user.uid}` : null;
+
+  // Restore a summary that was open before the app reloaded
+  useEffect(() => {
+    setSummaryTripId(null);
+    if (!storageKey) return;
+    let ignore = false;
+    AsyncStorage.getItem(storageKey).then((id) => {
+      if (!ignore && id) setSummaryTripId((current) => current ?? id);
+    });
+    return () => {
+      ignore = true;
+    };
+  }, [storageKey]);
 
   useEffect(() => {
-    if (activeTrip?.status === "completed") setSummaryTripId(activeTrip.id);
-  }, [activeTrip?.id, activeTrip?.status]);
+    if (activeTrip?.status !== "completed") return;
+    setSummaryTripId(activeTrip.id);
+    if (storageKey)
+      AsyncStorage.setItem(storageKey, activeTrip.id).catch(() => {});
+  }, [activeTrip?.id, activeTrip?.status, storageKey]);
 
-  // Forget the summary when the session ends
-  useEffect(() => {
-    if (!user) setSummaryTripId(null);
-  }, [user]);
-
-  const closeSummary = useCallback(() => setSummaryTripId(null), []);
+  const closeSummary = useCallback(() => {
+    setSummaryTripId(null);
+    if (storageKey) AsyncStorage.removeItem(storageKey).catch(() => {});
+  }, [storageKey]);
 
   const value = useMemo(() => {
     const summaryId =

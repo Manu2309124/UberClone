@@ -1,5 +1,5 @@
 // AI-assisted: see docs/AI_LOG.md #16, #20, #23
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -26,6 +26,11 @@ export default function TripSummaryScreen({ tripId, onClose }) {
   const trip = useTrip(tripId);
   const [opening, setOpening] = useState(false);
   const [error, setError] = useState(null);
+
+  // A saved summary whose trip no longer exists: close it
+  useEffect(() => {
+    if (trip === null) onClose();
+  }, [trip, onClose]);
 
   if (!trip) return <ActivityIndicator style={{ flex: 1 }} size="large" />;
 
