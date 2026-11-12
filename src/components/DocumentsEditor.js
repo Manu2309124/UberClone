@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #29
+// AI-assisted: see docs/AI_LOG.md #29, #31
 import { useEffect, useState } from "react";
 import { View, Text, Button, ActivityIndicator, StyleSheet } from "react-native";
 import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
@@ -11,6 +11,7 @@ import {
   validateDocuments,
   requiresInspection,
 } from "../utils/documentValidators";
+import { useLanguage } from "../context/LanguageContext";
 
 const toDate = (iso) => (iso ? new Date(iso) : null);
 const isLocal = (uri) => Boolean(uri) && !uri.startsWith("http");
@@ -22,6 +23,7 @@ export default function DocumentsEditor({ uid, documents, vehicleYear }) {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const { t } = useLanguage();
 
   // Accounts created before the Documents tab have no documents yet
   useEffect(() => {
@@ -80,10 +82,10 @@ export default function DocumentsEditor({ uid, documents, vehicleYear }) {
         "documents.acceptedTerms": true,
         "documents.updatedAt": serverTimestamp(),
       });
-      setMessage("Documentos actualizados");
+      setMessage(t("docs.saved"));
     } catch (e) {
       console.log(e.code, e.message);
-      setMessage("No se pudieron guardar los documentos. Intenta de nuevo.");
+      setMessage(t("docs.error"));
     } finally {
       setSaving(false);
     }
@@ -92,21 +94,21 @@ export default function DocumentsEditor({ uid, documents, vehicleYear }) {
   return (
     <View>
       <FormField
-        label="Número de licencia"
+        label={t("docs.licenseNumber")}
         value={values.licenseNumber}
-        onChangeText={(t) => set("licenseNumber")(t.replace(/\D/g, ""))}
+        onChangeText={(v) => set("licenseNumber")(v.replace(/\D/g, ""))}
         keyboardType="number-pad"
         maxLength={15}
         error={errors.licenseNumber}
       />
       <ImagePickerField
-        label="Foto de la licencia"
+        label={t("docs.licensePhoto")}
         uri={values.licensePhotoUri}
         onPick={set("licensePhotoUri")}
         error={errors.licensePhotoUri}
       />
       <DateField
-        label="Vencimiento de la licencia"
+        label={t("docs.licenseExpiry")}
         value={values.licenseExpiry}
         onChange={set("licenseExpiry")}
         minimumDate={tomorrow}
@@ -114,13 +116,13 @@ export default function DocumentsEditor({ uid, documents, vehicleYear }) {
       />
 
       <ImagePickerField
-        label="Foto del SOAT"
+        label={t("docs.soatPhoto")}
         uri={values.soatPhotoUri}
         onPick={set("soatPhotoUri")}
         error={errors.soatPhotoUri}
       />
       <DateField
-        label="Vencimiento del SOAT"
+        label={t("docs.soatExpiry")}
         value={values.soatExpiry}
         onChange={set("soatExpiry")}
         minimumDate={tomorrow}
@@ -130,13 +132,13 @@ export default function DocumentsEditor({ uid, documents, vehicleYear }) {
       {needsInspection ? (
         <>
           <ImagePickerField
-            label="Foto de la revisión técnico-mecánica"
+            label={t("docs.inspectionPhoto")}
             uri={values.inspectionPhotoUri}
             onPick={set("inspectionPhotoUri")}
             error={errors.inspectionPhotoUri}
           />
           <DateField
-            label="Vencimiento de la revisión"
+            label={t("docs.inspectionExpiry")}
             value={values.inspectionExpiry}
             onChange={set("inspectionExpiry")}
             minimumDate={tomorrow}
@@ -145,13 +147,12 @@ export default function DocumentsEditor({ uid, documents, vehicleYear }) {
         </>
       ) : (
         <Text style={styles.hint}>
-          Tu vehículo tiene menos de 5 años: no necesita revisión
-          técnico-mecánica.
+          {t("docs.noInspection")}
         </Text>
       )}
 
       <FormField
-        label="Correo de tu cuenta de Mercado Pago"
+        label={t("docs.mpEmail")}
         value={values.mercadoPagoEmail}
         onChangeText={set("mercadoPagoEmail")}
         keyboardType="email-address"
@@ -161,7 +162,7 @@ export default function DocumentsEditor({ uid, documents, vehicleYear }) {
       {saving ? (
         <ActivityIndicator />
       ) : (
-        <Button title="Guardar documentos" onPress={save} />
+        <Button title={t("docs.save")} onPress={save} />
       )}
       {message ? <Text style={styles.message}>{message}</Text> : null}
     </View>

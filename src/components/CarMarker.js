@@ -2,12 +2,14 @@
 import { View, StyleSheet } from "react-native";
 import { Marker } from "react-native-maps";
 import { Ionicons } from "@expo/vector-icons";
+import { useLanguage } from "../context/LanguageContext";
 
 // The driver's car on the map. It moves when `coordinate` changes.
 export default function CarMarker({ coordinate }) {
+  const { t } = useLanguage();
   if (!coordinate) return null;
   return (
-    <Marker coordinate={coordinate} anchor={{ x: 0.5, y: 0.5 }} title="Tú">
+    <Marker coordinate={coordinate} anchor={{ x: 0.5, y: 0.5 }} title={t("common.you")}>
       <View style={styles.badge}>
         <Ionicons name="car-sport" size={22} color="#fff" />
       </View>

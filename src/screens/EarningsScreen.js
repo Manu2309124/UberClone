@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #17
+// AI-assisted: see docs/AI_LOG.md #17, #31
 import {
   ScrollView,
   View,
@@ -8,20 +8,23 @@ import {
 } from "react-native";
 import { useEarnings } from "../hooks/useEarnings";
 import { useAuth } from "../context/AuthContext";
-
-const money = (n) =>
-  `${n < 0 ? "-" : ""}$${Math.abs(n).toLocaleString("es-CO")}`;
+import { useLanguage } from "../context/LanguageContext";
 
 function Block({ title, data }) {
+  const { t, money } = useLanguage();
   return (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>{title}</Text>
-      <Text>Viajes: {data.count}</Text>
-      <Text>Total facturado: {money(data.billed)}</Text>
-      <Text>Comisiones: {money(data.commissions)}</Text>
-      <Text>Propinas: {money(data.tips)}</Text>
-      <Text style={styles.net}>Ganancia neta: {money(data.net)}</Text>
-      <Text>Promedio por viaje: {money(data.average)}</Text>
+      <Text>{t("earnings.trips", { count: data.count })}</Text>
+      <Text>{t("earnings.billed", { amount: money(data.billed) })}</Text>
+      <Text>
+        {t("earnings.commissions", { amount: money(data.commissions) })}
+      </Text>
+      <Text>{t("earnings.tips", { amount: money(data.tips) })}</Text>
+      <Text style={styles.net}>
+        {t("earnings.net", { amount: money(data.net) })}
+      </Text>
+      <Text>{t("earnings.average", { amount: money(data.average) })}</Text>
     </View>
   );
 }
@@ -29,20 +32,21 @@ function Block({ title, data }) {
 export default function EarningsScreen() {
   const { user } = useAuth();
   const { totals, balance, loading } = useEarnings(user?.uid);
+  const { t, money } = useLanguage();
 
   if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" />;
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.balanceBox}>
-        <Text>Saldo del conductor</Text>
+        <Text>{t("earnings.balance")}</Text>
         <Text style={[styles.balance, balance < 0 && styles.negative]}>
           {money(balance)}
         </Text>
       </View>
-      <Block title="Hoy" data={totals.today} />
-      <Block title="Esta semana" data={totals.week} />
-      <Block title="Este mes" data={totals.month} />
+      <Block title={t("earnings.today")} data={totals.today} />
+      <Block title={t("earnings.week")} data={totals.week} />
+      <Block title={t("earnings.month")} data={totals.month} />
     </ScrollView>
   );
 }

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #19, #29
+// AI-assisted: see docs/AI_LOG.md #19, #29, #31
 import { useEffect, useState } from "react";
 import {
   ScrollView,
@@ -13,6 +13,7 @@ import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
 import FormField from "../components/FormField";
 import DocumentsEditor from "../components/DocumentsEditor";
+import { useLanguage } from "../context/LanguageContext";
 import { useDriverProfile } from "../hooks/useDriverProfile";
 import { useAuth } from "../context/AuthContext";
 import { validateProfileEdit } from "../utils/profileValidators";
@@ -24,6 +25,7 @@ export default function ProfileScreen() {
   const [phone, setPhone] = useState("");
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (profile) {
@@ -45,7 +47,7 @@ export default function ProfileScreen() {
       "personal.fullName": fullName.trim(),
       "personal.phone": phone,
     });
-    setMessage("Datos actualizados");
+    setMessage(t("profile.saved"));
   };
 
   return (
@@ -53,9 +55,9 @@ export default function ProfileScreen() {
       {personal.photoUrl ? (
         <Image source={{ uri: personal.photoUrl }} style={styles.photo} />
       ) : null}
-      <Text style={styles.section}>Datos personales</Text>
+      <Text style={styles.section}>{t("profile.personal")}</Text>
       <FormField
-        label="Nombre completo"
+        label={t("profile.fullName")}
         value={fullName}
         onChangeText={setFullName}
         autoCapitalize="words"
@@ -63,27 +65,31 @@ export default function ProfileScreen() {
         error={errors.fullName}
       />
       <FormField
-        label="Celular"
+        label={t("profile.phone")}
         value={phone}
-        onChangeText={(t) => setPhone(t.replace(/\D/g, ""))}
+        onChangeText={(v) => setPhone(v.replace(/\D/g, ""))}
         keyboardType="phone-pad"
         maxLength={10}
         error={errors.phone}
       />
-      <Text>Correo: {personal.email}</Text>
-      <Button title="Guardar cambios" onPress={save} />
+      <Text>{t("profile.email", { email: personal.email })}</Text>
+      <Button title={t("profile.save")} onPress={save} />
       {message ? <Text style={styles.ok}>{message}</Text> : null}
 
-      <Text style={styles.section}>Vehículo</Text>
+      <Text style={styles.section}>{t("profile.vehicle")}</Text>
       <Text>
-        {vehicle.brand} {vehicle.model} ({vehicle.year}) · {vehicle.color}
+        {vehicle.brand} {vehicle.model} ({vehicle.year}) ·{" "}
+        {t(`color.${vehicle.color}`)}
       </Text>
       <Text>
-        Placa: {vehicle.plate} · Categoría: {vehicle.category} · Capacidad:{" "}
-        {vehicle.capacity}
+        {t("profile.plate", {
+          plate: vehicle.plate,
+          category: t(`category.${vehicle.category}`),
+          capacity: vehicle.capacity,
+        })}
       </Text>
 
-      <Text style={styles.section}>Documentos</Text>
+      <Text style={styles.section}>{t("profile.documents")}</Text>
       <DocumentsEditor
         uid={user.uid}
         documents={documents}

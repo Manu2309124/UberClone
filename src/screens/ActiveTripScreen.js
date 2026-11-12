@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #15, #22, #30
+// AI-assisted: see docs/AI_LOG.md #15, #22, #30, #31
 import { useEffect, useRef, useState } from "react";
 import { View, Text, Button, StyleSheet } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
@@ -7,22 +7,23 @@ import { useRoute } from "../hooks/useRoute";
 import { useSimulatedDrive } from "../hooks/useSimulatedDrive";
 import CarMarker from "../components/CarMarker";
 import { useActiveTripContext } from "../context/ActiveTripContext";
+import { useLanguage } from "../context/LanguageContext";
 
 const STEPS = {
   accepted: {
-    label: "Voy en camino",
+    label: "trip.onMyWay",
     next: "driver_arriving",
-    title: "Ve al punto de recogida",
+    title: "trip.goPickup",
   },
   driver_arriving: {
-    label: "Pasajero a bordo",
+    label: "trip.passengerOnBoard",
     next: "in_progress",
-    title: "Llegando al pasajero",
+    title: "trip.arriving",
   },
   in_progress: {
-    label: "Finalizar viaje",
+    label: "trip.finish",
     next: "completed",
-    title: "Viaje en curso hacia el destino",
+    title: "trip.inProgress",
   },
 };
 
@@ -41,6 +42,7 @@ export default function ActiveTripScreen() {
 }
 
 function ActiveTrip({ trip, driverLocation }) {
+  const { t } = useLanguage();
   const mapRef = useRef(null);
   const [simulating, setSimulating] = useState(false);
 
@@ -90,8 +92,12 @@ function ActiveTrip({ trip, driverLocation }) {
           longitudeDelta: 0.08,
         }}
       >
-        <Marker coordinate={origin} title="Recogida" pinColor="green" />
-        <Marker coordinate={destination} title="Destino" pinColor="red" />
+        <Marker coordinate={origin} title={t("common.pickup")} pinColor="green" />
+        <Marker
+          coordinate={destination}
+          title={t("common.destination")}
+          pinColor="red"
+        />
         {route ? (
           <Polyline
             coordinates={route.coordinates}
@@ -103,30 +109,32 @@ function ActiveTrip({ trip, driverLocation }) {
         <CarMarker coordinate={carPosition} />
       </MapView>
       <View style={styles.panel}>
-        <Text style={styles.title}>{step?.title}</Text>
-        <Text>Hacia: {target.address}</Text>
+        <Text style={styles.title}>{step ? t(step.title) : null}</Text>
+        <Text>{t("trip.towards", { address: target.address })}</Text>
         {route?.distanceMeters ? (
           <Text>
-            {(route.distanceMeters / 1000).toFixed(1)} km ·{" "}
-            {Math.round(parseInt(route.duration, 10) / 60)} min
+            {t("trip.routeInfo", {
+              km: (route.distanceMeters / 1000).toFixed(1),
+              min: Math.round(parseInt(route.duration, 10) / 60),
+            })}
           </Text>
         ) : null}
         {step ? (
           <Button
-            title={step.label}
+            title={t(step.label)}
             onPress={() => updateTripStatus(trip.id, step.next)}
           />
         ) : null}
         {__DEV__ && route ? (
           <Button
-            title={simulating ? "Detener simulación" : "Simular recorrido"}
+            title={simulating ? t("trip.stopSimulation") : t("trip.simulate")}
             color="#555"
             onPress={() => setSimulating((s) => !s)}
           />
         ) : null}
         {toPickup ? (
           <Button
-            title="Cancelar viaje"
+            title={t("trip.cancel")}
             color="#d32f2f"
             onPress={() => updateTripStatus(trip.id, "cancelled")}
           />

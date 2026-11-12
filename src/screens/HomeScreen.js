@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #19, #22, #23, #24, #25, #30
+// AI-assisted: see docs/AI_LOG.md #19, #22, #23, #24, #25, #30, #31
 import { useState, useEffect } from "react";
 import {
   View,
@@ -17,6 +17,7 @@ import { useDriverProfile } from "../hooks/useDriverProfile";
 import { useDriverLocation } from "../hooks/useDriverLocation";
 import { useTripRequests } from "../hooks/useTripRequests";
 import { useActiveTripContext } from "../context/ActiveTripContext";
+import { useLanguage } from "../context/LanguageContext";
 import TripRequestCard from "../components/TripRequestCard";
 import CarMarker from "../components/CarMarker";
 import { createFakeTrip, acceptTrip, rejectTrip } from "../services/trips";
@@ -33,6 +34,7 @@ export default function HomeScreen() {
   const { activeTrip, driving, summaryTripId, reportLocation } =
     useActiveTripContext();
   const navigation = useNavigation();
+  const { t } = useLanguage();
 
   // Location is tracked while available and during a trip, so the car moves
   const { location, error } = useDriverLocation(
@@ -125,16 +127,19 @@ export default function HomeScreen() {
 
       <View style={styles.panel}>
         <Text style={styles.title}>
-          Hola, {profile?.personal?.fullName ?? "conductora"}
+          {t("home.hello", {
+            name: profile?.personal?.fullName ?? t("home.defaultName"),
+          })}
         </Text>
         <Text>
-          Estado de la cuenta:{" "}
-          {approved ? "Aprobada" : "Pendiente de aprobación"}
+          {t("home.accountStatus", {
+            status: approved ? t("home.approved") : t("home.pending"),
+          })}
         </Text>
 
         <View style={styles.row}>
           <Text style={styles.label}>
-            {available ? "Disponible" : "No disponible"}
+            {available ? t("home.available") : t("home.unavailable")}
           </Text>
           <Switch
             value={available}
@@ -145,10 +150,10 @@ export default function HomeScreen() {
 
         {!approved ? (
           <Text style={styles.hint}>
-            No puedes ponerte disponible hasta que tu cuenta sea aprobada.
+            {t("home.mustBeApproved")}
           </Text>
         ) : null}
-        {error ? <Text style={styles.hint}>{error}</Text> : null}
+        {error ? <Text style={styles.hint}>{t("home.locationDenied")}</Text> : null}
 
         {currentRequest ? (
           <TripRequestCard
@@ -161,11 +166,11 @@ export default function HomeScreen() {
         {available ? (
           <>
             <Button
-              title="Simular pasajero (efectivo)"
+              title={t("home.simulateCash")}
               onPress={() => createFakeTrip("economy", "cash")}
             />
             <Button
-              title="Simular pasajero (Mercado Pago)"
+              title={t("home.simulateMp")}
               onPress={() => createFakeTrip("economy", "mercadopago")}
             />
           </>

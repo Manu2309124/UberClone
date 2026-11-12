@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #16, #20, #23, #30
+// AI-assisted: see docs/AI_LOG.md #16, #20, #23, #30, #31
 import { useEffect, useRef, useState } from "react";
 import {
   View,
@@ -11,14 +11,13 @@ import { markPaidCash } from "../services/trips";
 import { openPaymentLink } from "../services/payments";
 import { useTrip } from "../hooks/useTrip";
 import { useActiveTripContext } from "../context/ActiveTripContext";
-import { paymentStatusLabel } from "../utils/paymentStatus";
-
-const money = (n) => `$${n.toLocaleString("es-CO")}`;
+import { paymentStatusKey } from "../utils/paymentStatus";
+import { useLanguage } from "../context/LanguageContext";
 
 const STATUS_COLOR = {
-  Aprobado: "#2e7d32",
-  Efectivo: "#2e7d32",
-  Rechazado: "#c62828",
+  "pay.approved": "#2e7d32",
+  "pay.cash": "#2e7d32",
+  "pay.rejected": "#c62828",
 };
 
 // Listens to the trip in real time, so the payment result appears here
@@ -31,6 +30,7 @@ export default function TripSummaryScreen() {
   if (summaryTripId) lastId.current = summaryTripId;
   const trip = useTrip(lastId.current);
   const [opening, setOpening] = useState(false);
+  const { t, money } = useLanguage();
   const [error, setError] = useState(null);
 
   // A saved summary whose trip no longer exists: close it
@@ -43,7 +43,7 @@ export default function TripSummaryScreen() {
   const isCash = trip.paymentMethod === "cash";
   const paid = trip.status === "paid";
   const rejected = trip.paymentStatus === "rejected";
-  const label = paymentStatusLabel(trip);
+  const statusKey = paymentStatusKey(trip);
 
   const payOnline = async () => {
     setOpening(true);
@@ -60,51 +60,62 @@ export default function TripSummaryScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>
-        {paid ? "Cobro confirmado" : "Viaje finalizado"}
+        {paid ? t("summary.confirmed") : t("summary.finished")}
       </Text>
-      <Text>Tarifa final: {money(trip.fare)}</Text>
+      <Text>{t("summary.finalFare", { amount: money(trip.fare) })}</Text>
       <Text>
-        Comisión ({Math.round(trip.commissionRate * 100)} %):{" "}
-        {money(trip.commission)}
+        {t("common.commission", {
+          rate: Math.round(trip.commissionRate * 100),
+        })}
+        : {money(trip.commission)}
       </Text>
-      {trip.tip > 0 ? <Text>Propina: {money(trip.tip)}</Text> : null}
+      {trip.tip > 0 ? (
+        <Text>
+          {t("common.tip")}: {money(trip.tip)}
+        </Text>
+      ) : null}
       <Text style={styles.earn}>
-        Ganancia neta: {money(trip.driverEarnings)}
+        {t("common.netEarnings")}: {money(trip.driverEarnings)}
       </Text>
-      <Text>Método de pago: {isCash ? "Efectivo" : "Mercado Pago"}</Text>
-      <Text style={[styles.status, { color: STATUS_COLOR[label] ?? "#333" }]}>
-        Estado del pago: {label}
+      <Text>
+        {t("summary.method", {
+          method: t(isCash ? "method.cash" : "method.mercadopago"),
+        })}
+      </Text>
+      <Text
+        style={[styles.status, { color: STATUS_COLOR[statusKey] ?? "#333" }]}
+      >
+        {t("summary.status", { status: t(statusKey) })}
       </Text>
 
       {paid ? (
-        <Button title="Continuar" onPress={onClose} />
+        <Button title={t("summary.continue")} onPress={onClose} />
       ) : isCash ? (
         <Button
-          title="Cobro recibido (efectivo)"
+          title={t("summary.cashReceived")}
           onPress={() => markPaidCash(trip.id)}
         />
       ) : (
         <>
           {rejected ? (
             <Text style={styles.error}>
-              El pago fue rechazado. Pide al pasajero que intente con otro
-              medio de pago.
+              {t("summary.rejectedHint")}
             </Text>
           ) : null}
           <Button
             title={
               opening
-                ? "Abriendo..."
+                ? t("summary.opening")
                 : rejected
-                  ? "Abrir un nuevo link de pago"
-                  : "Abrir link de pago"
+                  ? t("summary.openNewLink")
+                  : t("summary.openLink")
             }
             disabled={opening}
             onPress={payOnline}
           />
           {error ? <Text style={styles.error}>{error}</Text> : null}
           <Text style={styles.hint}>
-            Esperando la confirmación de la pasarela de pago...
+            {t("summary.waiting")}
           </Text>
         </>
       )}

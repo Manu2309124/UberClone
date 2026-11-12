@@ -1,34 +1,35 @@
-// AI-assisted: see docs/AI_LOG.md #21
+// AI-assisted: see docs/AI_LOG.md #21, #31
 import { EMAIL_REGEX } from "./validators.js";
 
-// Pure function: easy to test in Node.
+// Pure functions: easy to test in Node. They return translation keys
+// (see src/i18n/strings.js) so the screen shows them in the app language.
 export function validateLogin({ email = "", password = "" }) {
   const errors = {};
   const cleanEmail = email.trim();
-  if (!cleanEmail) errors.email = "El correo es obligatorio";
-  else if (!EMAIL_REGEX.test(cleanEmail)) errors.email = "Correo no válido";
-  if (!password) errors.password = "La contraseña es obligatoria";
+  if (!cleanEmail) errors.email = "login.err.emailRequired";
+  else if (!EMAIL_REGEX.test(cleanEmail)) errors.email = "login.err.emailInvalid";
+  if (!password) errors.password = "login.err.passwordRequired";
   return errors;
 }
 
 // Turns Firebase Auth error codes into messages for the driver.
 // Firebase answers "invalid-credential" for a wrong email or password on
 // purpose, so the app does not reveal which accounts exist.
-export function loginErrorMessage(code) {
+export function loginErrorKey(code) {
   switch (code) {
     case "auth/invalid-credential":
     case "auth/wrong-password":
     case "auth/user-not-found":
-      return "Correo o contraseña incorrectos";
+      return "login.err.credentials";
     case "auth/invalid-email":
-      return "Correo no válido";
+      return "login.err.emailInvalid";
     case "auth/user-disabled":
-      return "Esta cuenta está deshabilitada";
+      return "login.err.disabled";
     case "auth/too-many-requests":
-      return "Demasiados intentos. Espera unos minutos e intenta de nuevo";
+      return "login.err.tooMany";
     case "auth/network-request-failed":
-      return "Sin conexión a internet";
+      return "login.err.network";
     default:
-      return "No se pudo iniciar sesión. Intenta de nuevo";
+      return "login.err.generic";
   }
 }

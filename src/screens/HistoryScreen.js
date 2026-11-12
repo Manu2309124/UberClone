@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #18, #23
+// AI-assisted: see docs/AI_LOG.md #18, #23, #31
 import { useMemo, useState } from "react";
 import {
   View,
@@ -12,25 +12,25 @@ import { useNavigation } from "@react-navigation/native";
 import DateField from "../components/DateField";
 import {
   paymentStatusLabel,
-  PAYMENT_METHOD_LABEL,
+  paymentMethodLabel,
 } from "../utils/paymentStatus";
+import { useLanguage } from "../context/LanguageContext";
 import { useTripHistory } from "../hooks/useTripHistory";
 import { useAuth } from "../context/AuthContext";
 
 const PERIODS = [
-  ["all", "Todo"],
-  ["today", "Hoy"],
-  ["week", "Semana"],
-  ["month", "Mes"],
-  ["range", "Rango"],
+  ["all", "history.all"],
+  ["today", "history.today"],
+  ["week", "history.week"],
+  ["month", "history.month"],
+  ["range", "history.range"],
 ];
 const METHODS = [
-  ["all", "Todos"],
-  ["cash", "Efectivo"],
-  ["mercadopago", "Mercado Pago"],
-  ["stripe", "Stripe"],
+  ["all", "history.allMethods"],
+  ["cash", "method.cash"],
+  ["mercadopago", "method.mercadopago"],
+  ["stripe", "method.stripe"],
 ];
-const money = (n) => `$${n.toLocaleString("es-CO")}`;
 
 function Chip({ label, active, onPress }) {
   return (
@@ -46,6 +46,7 @@ function Chip({ label, active, onPress }) {
 export default function HistoryScreen() {
   const { user } = useAuth();
   const navigation = useNavigation();
+  const { t, money, locale, language } = useLanguage();
   const [period, setPeriod] = useState("all");
   const [method, setMethod] = useState("all");
   const [from, setFrom] = useState(null);
@@ -66,7 +67,7 @@ export default function HistoryScreen() {
         {PERIODS.map(([v, l]) => (
           <Chip
             key={v}
-            label={l}
+            label={t(l)}
             active={period === v}
             onPress={() => setPeriod(v)}
           />
@@ -76,7 +77,7 @@ export default function HistoryScreen() {
         {METHODS.map(([v, l]) => (
           <Chip
             key={v}
-            label={l}
+            label={t(l)}
             active={method === v}
             onPress={() => setMethod(v)}
           />
@@ -85,8 +86,8 @@ export default function HistoryScreen() {
 
       {period === "range" ? (
         <View style={styles.range}>
-          <DateField label="Desde" value={from} onChange={setFrom} />
-          <DateField label="Hasta" value={to} onChange={setTo} />
+          <DateField label={t("history.from")} value={from} onChange={setFrom} />
+          <DateField label={t("history.to")} value={to} onChange={setTo} />
         </View>
       ) : null}
 
@@ -97,7 +98,7 @@ export default function HistoryScreen() {
           data={trips}
           keyExtractor={(t) => t.id}
           ListEmptyComponent={
-            <Text style={styles.empty}>No tienes viajes en este filtro.</Text>
+            <Text style={styles.empty}>{t("history.empty")}</Text>
           }
           renderItem={({ item }) => (
             <Pressable
@@ -107,26 +108,31 @@ export default function HistoryScreen() {
               }
             >
               <Text style={styles.itemTitle}>
-                {item.date.toLocaleString("es-CO")}
+                {item.date.toLocaleString(locale)}
               </Text>
               <Text>
                 {item.origin.address} → {item.destination.address}
               </Text>
               <Text>
-                {item.category} · Tarifa {money(item.fare)} · Neta{" "}
-                {money(item.driverEarnings)}
+                {t("history.fareNet", {
+                  category: t(`category.${item.category}`),
+                  fare: money(item.fare),
+                  net: money(item.driverEarnings),
+                })}
               </Text>
               <Text>
-                Pago: {PAYMENT_METHOD_LABEL[item.paymentMethod] ??
-                  item.paymentMethod}{" "}
-                · {paymentStatusLabel(item)}
+                {t("common.payment")}:{" "}
+                {paymentMethodLabel(item.paymentMethod, language)} ·{" "}
+                {paymentStatusLabel(item, language)}
               </Text>
             </Pressable>
           )}
           ListFooterComponent={
             hasMore ? (
               <Pressable style={styles.more} onPress={loadMore}>
-                <Text>Cargar más ({total - trips.length} restantes)</Text>
+                <Text>
+                  {t("history.loadMore", { count: total - trips.length })}
+                </Text>
               </Pressable>
             ) : null
           }

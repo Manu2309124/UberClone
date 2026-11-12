@@ -1,17 +1,17 @@
-// AI-assisted: see docs/AI_LOG.md #18, #23
+// AI-assisted: see docs/AI_LOG.md #18, #23, #31
 import { useRef } from "react";
 import { ScrollView, View, Text, StyleSheet } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import {
   paymentStatusLabel,
-  PAYMENT_METHOD_LABEL,
+  paymentMethodLabel,
 } from "../utils/paymentStatus";
-
-const money = (n) => `$${n.toLocaleString("es-CO")}`;
+import { useLanguage } from "../context/LanguageContext";
 
 export default function TripDetailScreen({ route }) {
   const { trip } = route.params;
   const mapRef = useRef(null);
+  const { t, money, locale, language } = useLanguage();
 
   const o = { latitude: trip.origin.lat, longitude: trip.origin.lng };
   const d = { latitude: trip.destination.lat, longitude: trip.destination.lng };
@@ -35,30 +35,44 @@ export default function TripDetailScreen({ route }) {
           })
         }
       >
-        <Marker coordinate={o} title="Origen" pinColor="green" />
-        <Marker coordinate={d} title="Destino" pinColor="red" />
+        <Marker coordinate={o} title={t("common.origin")} pinColor="green" />
+        <Marker coordinate={d} title={t("common.destination")} pinColor="red" />
         <Polyline coordinates={[o, d]} strokeWidth={4} strokeColor="#1a73e8" />
       </MapView>
       <View style={styles.info}>
-        <Text>Fecha: {new Date(trip.date).toLocaleString("es-CO")}</Text>
         <Text>
-          Distancia: {trip.distanceKm} km · Duración: {trip.durationMin} min
-        </Text>
-        <Text>Tarifa: {money(trip.fare)}</Text>
-        <Text>
-          Comisión ({Math.round(trip.commissionRate * 100)} %):{" "}
-          {money(trip.commission)}
-        </Text>
-        <Text>Propina: {money(trip.tip || 0)}</Text>
-        <Text>Ganancia neta: {money(trip.driverEarnings)}</Text>
-        <Text>
-          Pago:{" "}
-          {PAYMENT_METHOD_LABEL[trip.paymentMethod] ?? trip.paymentMethod} ·{" "}
-          {paymentStatusLabel(trip)}
+          {t("detail.date", { date: new Date(trip.date).toLocaleString(locale) })}
         </Text>
         <Text>
-          Calificación del pasajero:{" "}
-          {trip.rating ? `${trip.rating} / 5` : "Sin calificación"}
+          {t("common.distanceDuration", {
+            km: trip.distanceKm,
+            min: trip.durationMin,
+          })}
+        </Text>
+        <Text>
+          {t("common.fare")}: {money(trip.fare)}
+        </Text>
+        <Text>
+          {t("common.commission", {
+            rate: Math.round(trip.commissionRate * 100),
+          })}
+          : {money(trip.commission)}
+        </Text>
+        <Text>
+          {t("common.tip")}: {money(trip.tip || 0)}
+        </Text>
+        <Text>
+          {t("common.netEarnings")}: {money(trip.driverEarnings)}
+        </Text>
+        <Text>
+          {t("common.payment")}:{" "}
+          {paymentMethodLabel(trip.paymentMethod, language)} ·{" "}
+          {paymentStatusLabel(trip, language)}
+        </Text>
+        <Text>
+          {t("detail.rating", {
+            rating: trip.rating ? `${trip.rating} / 5` : t("detail.noRating"),
+          })}
         </Text>
       </View>
     </ScrollView>
