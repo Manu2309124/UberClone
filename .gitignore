@@ -43,3 +43,9 @@ yarn-error.*
 # environment variables (the real file never goes to Git)
 .env
 .env.local
+serviceAccountKey.json
+backend/node_modules/
+
+
+serviceAccountKey.json
+backend/node_modules/
