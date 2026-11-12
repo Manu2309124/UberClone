@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #19, #22, #23, #24
+// AI-assisted: see docs/AI_LOG.md #19, #22, #23, #24, #25
 import { useState, useEffect } from "react";
 import {
   View,
@@ -9,6 +9,7 @@ import {
   StyleSheet,
 } from "react-native";
 import MapView from "react-native-maps";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useDriverProfile } from "../hooks/useDriverProfile";
@@ -48,8 +49,26 @@ export default function HomeScreen() {
     if (!approved && available) setAvailable(false);
   }, [approved, available]);
 
+  // Restore the last availability saved on this phone (a preference, not
+  // sensitive data, so AsyncStorage is allowed). Only for approved accounts.
+  const storageKey = user ? `lastAvailable:${user.uid}` : null;
+  useEffect(() => {
+    if (!storageKey || !approved) return;
+    let ignore = false;
+    AsyncStorage.getItem(storageKey).then((v) => {
+      if (!ignore && v === "true") toggleAvailable(true);
+    });
+    return () => {
+      ignore = true;
+    };
+    // toggleAvailable is recreated each render; restoring once is enough
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storageKey, approved]);
+
   const toggleAvailable = (value) => {
     setAvailable(value);
+    if (storageKey)
+      AsyncStorage.setItem(storageKey, String(value)).catch(() => {});
     if (user) {
       updateDoc(doc(db, "drivers", user.uid), { available: value }).catch((e) =>
         console.log(e.code),
