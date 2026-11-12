@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #16, #20, #23
-import { useEffect, useState } from "react";
+// AI-assisted: see docs/AI_LOG.md #16, #20, #23, #30
+import { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
 import { markPaidCash } from "../services/trips";
 import { openPaymentLink } from "../services/payments";
 import { useTrip } from "../hooks/useTrip";
+import { useActiveTripContext } from "../context/ActiveTripContext";
 import { paymentStatusLabel } from "../utils/paymentStatus";
 
 const money = (n) => `$${n.toLocaleString("es-CO")}`;
@@ -22,8 +23,13 @@ const STATUS_COLOR = {
 
 // Listens to the trip in real time, so the payment result appears here
 // as soon as the backend (or the driver, for cash) records it.
-export default function TripSummaryScreen({ tripId, onClose }) {
-  const trip = useTrip(tripId);
+// "Cobro y resumen" screen of the trip Stack.
+export default function TripSummaryScreen() {
+  const { summaryTripId, closeSummary: onClose } = useActiveTripContext();
+  // Keep the last id while the Stack animates back to Inicio
+  const lastId = useRef(summaryTripId);
+  if (summaryTripId) lastId.current = summaryTripId;
+  const trip = useTrip(lastId.current);
   const [opening, setOpening] = useState(false);
   const [error, setError] = useState(null);
 

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #15, #22
+// AI-assisted: see docs/AI_LOG.md #15, #22, #30
 import { useEffect, useRef, useState } from "react";
 import { View, Text, Button, StyleSheet } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
@@ -6,6 +6,7 @@ import { updateTripStatus } from "../services/trips";
 import { useRoute } from "../hooks/useRoute";
 import { useSimulatedDrive } from "../hooks/useSimulatedDrive";
 import CarMarker from "../components/CarMarker";
+import { useActiveTripContext } from "../context/ActiveTripContext";
 
 const STEPS = {
   accepted: {
@@ -27,7 +28,19 @@ const STEPS = {
 
 const EDGE = { top: 60, right: 60, bottom: 60, left: 60 };
 
-export default function ActiveTripScreen({ trip, driverLocation }) {
+// "Viaje en curso" screen of the trip Stack. The trip and the driver
+// location come from ActiveTripContext.
+export default function ActiveTripScreen() {
+  const { activeTrip, driverLocation } = useActiveTripContext();
+  // Keep the last trip while the Stack moves to the next screen
+  const lastTrip = useRef(activeTrip);
+  if (activeTrip) lastTrip.current = activeTrip;
+  const trip = lastTrip.current;
+  if (!trip) return null;
+  return <ActiveTrip trip={trip} driverLocation={driverLocation} />;
+}
+
+function ActiveTrip({ trip, driverLocation }) {
   const mapRef = useRef(null);
   const [simulating, setSimulating] = useState(false);
 

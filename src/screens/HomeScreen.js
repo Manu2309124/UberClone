@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #19, #22, #23, #24, #25
+// AI-assisted: see docs/AI_LOG.md #19, #22, #23, #24, #25, #30
 import { useState, useEffect } from "react";
 import {
   View,
@@ -9,6 +9,7 @@ import {
   StyleSheet,
 } from "react-native";
 import MapView from "react-native-maps";
+import { useNavigation, StackActions } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
@@ -18,8 +19,6 @@ import { useTripRequests } from "../hooks/useTripRequests";
 import { useActiveTripContext } from "../context/ActiveTripContext";
 import TripRequestCard from "../components/TripRequestCard";
 import CarMarker from "../components/CarMarker";
-import ActiveTripScreen from "./ActiveTripScreen";
-import TripSummaryScreen from "./TripSummaryScreen";
 import { createFakeTrip, acceptTrip, rejectTrip } from "../services/trips";
 import { useAuth } from "../context/AuthContext";
 
@@ -31,14 +30,45 @@ export default function HomeScreen() {
   const approved = profile?.status === "approved";
 
   // Trip the driver is working on, shared through ActiveTripContext
-  const { activeTrip, driving, summaryTripId, closeSummary } =
+  const { activeTrip, driving, summaryTripId, reportLocation } =
     useActiveTripContext();
+  const navigation = useNavigation();
 
   // Location is tracked while available and during a trip, so the car moves
   const { location, error } = useDriverLocation(
     user?.uid,
     (available && approved) || driving,
   );
+
+  // Share the location with the trip screens of the Stack
+  useEffect(() => {
+    reportLocation(location);
+  }, [location, reportLocation]);
+
+  // Trip flow in the Stack: Inicio -> Viaje en curso -> Cobro y resumen.
+  // Inicio stays mounted underneath, so the GPS keeps running during the trip.
+  const tripScreen = summaryTripId
+    ? "Cobro y resumen"
+    : activeTrip
+      ? "Viaje en curso"
+      : null;
+  useEffect(() => {
+    const state = navigation.getState();
+    const top = state.routes[state.index]?.name;
+    if (tripScreen !== top) {
+      if (!tripScreen) {
+        if (state.index > 0) navigation.popToTop();
+      } else if (top === "Inicio") {
+        navigation.navigate(tripScreen);
+      } else {
+        navigation.dispatch(StackActions.replace(tripScreen));
+      }
+    }
+    // During a trip, hide the drawer header and its swipe gesture
+    navigation
+      .getParent()
+      ?.setOptions({ headerShown: !tripScreen, swipeEnabled: !tripScreen });
+  }, [tripScreen, navigation]);
 
   // Trip requests are only listened to while the driver is available
   const requests = useTripRequests(available && approved);
@@ -77,12 +107,6 @@ export default function HomeScreen() {
   };
 
   if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" />;
-
-  // Active trip screens replace the home screen
-  if (summaryTripId)
-    return <TripSummaryScreen tripId={summaryTripId} onClose={closeSummary} />;
-  if (activeTrip)
-    return <ActiveTripScreen trip={activeTrip} driverLocation={location} />;
 
   const region = location
     ? { ...location, latitudeDelta: 0.01, longitudeDelta: 0.01 }

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #24
+// AI-assisted: see docs/AI_LOG.md #24, #30
 import {
   createContext,
   useCallback,
@@ -22,6 +22,9 @@ export function ActiveTripProvider({ children }) {
   const { user } = useAuth();
   const activeTrip = useActiveTrip(user?.uid);
   const [summaryTripId, setSummaryTripId] = useState(null);
+  // Last known driver location, reported by Inicio (which tracks the GPS)
+  // so the trip screens of the Stack can draw the car
+  const [driverLocation, setDriverLocation] = useState(null);
   const storageKey = user ? `openSummary:${user.uid}` : null;
 
   // Restore a summary that was open before the app reloaded
@@ -59,8 +62,10 @@ export function ActiveTripProvider({ children }) {
       driving: Boolean(activeTrip) && activeTrip.status !== "completed",
       summaryTripId: summaryId,
       closeSummary,
+      driverLocation,
+      reportLocation: setDriverLocation,
     };
-  }, [activeTrip, summaryTripId, closeSummary]);
+  }, [activeTrip, summaryTripId, closeSummary, driverLocation]);
 
   return (
     <ActiveTripContext.Provider value={value}>
