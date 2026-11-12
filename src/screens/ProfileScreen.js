@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #19
+// AI-assisted: see docs/AI_LOG.md #19, #29
 import { useEffect, useState } from "react";
 import {
   ScrollView,
@@ -12,12 +12,10 @@ import {
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
 import FormField from "../components/FormField";
+import DocumentsEditor from "../components/DocumentsEditor";
 import { useDriverProfile } from "../hooks/useDriverProfile";
 import { useAuth } from "../context/AuthContext";
 import { validateProfileEdit } from "../utils/profileValidators";
-
-const fmt = (iso) =>
-  iso ? new Date(iso).toLocaleDateString("es-CO") : "No aplica";
 
 export default function ProfileScreen() {
   const { user } = useAuth();
@@ -86,11 +84,11 @@ export default function ProfileScreen() {
       </Text>
 
       <Text style={styles.section}>Documentos</Text>
-      <Text>Licencia vence: {fmt(documents?.licenseExpiry)}</Text>
-      <Text>SOAT vence: {fmt(documents?.soatExpiry)}</Text>
-      <Text>
-        Revisión técnico-mecánica vence: {fmt(documents?.inspectionExpiry)}
-      </Text>
+      <DocumentsEditor
+        uid={user.uid}
+        documents={documents}
+        vehicleYear={vehicle.year}
+      />
     </ScrollView>
   );
 }
