@@ -1,6 +1,6 @@
 // AI-assisted: see docs/AI_LOG.md #5
 const NAME_REGEX = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]+$/;
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export function getAge(birthDate, today = new Date()) {
   let age = today.getFullYear() - birthDate.getFullYear();
