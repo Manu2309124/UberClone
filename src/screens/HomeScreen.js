@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #19
+// AI-assisted: see docs/AI_LOG.md #19, #22
 import { useState, useEffect } from "react";
 import {
   View,
@@ -8,7 +8,7 @@ import {
   Button,
   StyleSheet,
 } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import MapView from "react-native-maps";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useDriverProfile } from "../hooks/useDriverProfile";
@@ -16,6 +16,7 @@ import { useDriverLocation } from "../hooks/useDriverLocation";
 import { useTripRequests } from "../hooks/useTripRequests";
 import { useActiveTrip } from "../hooks/useActiveTrip";
 import TripRequestCard from "../components/TripRequestCard";
+import CarMarker from "../components/CarMarker";
 import ActiveTripScreen from "./ActiveTripScreen";
 import TripSummaryScreen from "./TripSummaryScreen";
 import { createFakeTrip, acceptTrip, rejectTrip } from "../services/trips";
@@ -27,17 +28,20 @@ export default function HomeScreen() {
   const [available, setAvailable] = useState(false);
 
   const approved = profile?.status === "approved";
+
+  // Trip the driver is currently working on (accepted -> completed)
+  const activeTrip = useActiveTrip(user?.uid);
+  const driving = Boolean(activeTrip) && activeTrip.status !== "completed";
+
+  // Location is tracked while available and during a trip, so the car moves
   const { location, error } = useDriverLocation(
     user?.uid,
-    available && approved,
+    (available && approved) || driving,
   );
 
   // Trip requests are only listened to while the driver is available
   const requests = useTripRequests(available && approved);
   const currentRequest = requests[0] ?? null;
-
-  // Trip the driver is currently working on (accepted -> completed)
-  const activeTrip = useActiveTrip(user?.uid);
 
   // If approval is lost, force "not available"
   useEffect(() => {
@@ -58,7 +62,8 @@ export default function HomeScreen() {
   // Active trip screens replace the home screen
   if (activeTrip?.status === "completed")
     return <TripSummaryScreen trip={activeTrip} />;
-  if (activeTrip) return <ActiveTripScreen trip={activeTrip} />;
+  if (activeTrip)
+    return <ActiveTripScreen trip={activeTrip} driverLocation={location} />;
 
   const region = location
     ? { ...location, latitudeDelta: 0.01, longitudeDelta: 0.01 }
@@ -71,8 +76,8 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <MapView style={styles.map} region={region} showsUserLocation>
-        {location ? <Marker coordinate={location} title="Tú" /> : null}
+      <MapView style={styles.map} region={region}>
+        <CarMarker coordinate={location} />
       </MapView>
 
       <View style={styles.panel}>
