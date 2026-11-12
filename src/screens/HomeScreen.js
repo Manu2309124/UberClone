@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #19, #22, #23
+// AI-assisted: see docs/AI_LOG.md #19, #22, #23, #24
 import { useState, useEffect } from "react";
 import {
   View,
@@ -14,7 +14,7 @@ import { db } from "../config/firebase";
 import { useDriverProfile } from "../hooks/useDriverProfile";
 import { useDriverLocation } from "../hooks/useDriverLocation";
 import { useTripRequests } from "../hooks/useTripRequests";
-import { useActiveTrip } from "../hooks/useActiveTrip";
+import { useActiveTripContext } from "../context/ActiveTripContext";
 import TripRequestCard from "../components/TripRequestCard";
 import CarMarker from "../components/CarMarker";
 import ActiveTripScreen from "./ActiveTripScreen";
@@ -29,18 +29,9 @@ export default function HomeScreen() {
 
   const approved = profile?.status === "approved";
 
-  // Trip the driver is currently working on (accepted -> completed)
-  const activeTrip = useActiveTrip(user?.uid);
-  const driving = Boolean(activeTrip) && activeTrip.status !== "completed";
-
-  // The summary stays open after the trip is paid, until the driver closes it
-  const [summaryTripId, setSummaryTripId] = useState(null);
-  useEffect(() => {
-    if (activeTrip?.status === "completed") setSummaryTripId(activeTrip.id);
-  }, [activeTrip?.id, activeTrip?.status]);
-  const shownSummaryId =
-    summaryTripId ??
-    (activeTrip?.status === "completed" ? activeTrip.id : null);
+  // Trip the driver is working on, shared through ActiveTripContext
+  const { activeTrip, driving, summaryTripId, closeSummary } =
+    useActiveTripContext();
 
   // Location is tracked while available and during a trip, so the car moves
   const { location, error } = useDriverLocation(
@@ -69,13 +60,8 @@ export default function HomeScreen() {
   if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" />;
 
   // Active trip screens replace the home screen
-  if (shownSummaryId)
-    return (
-      <TripSummaryScreen
-        tripId={shownSummaryId}
-        onClose={() => setSummaryTripId(null)}
-      />
-    );
+  if (summaryTripId)
+    return <TripSummaryScreen tripId={summaryTripId} onClose={closeSummary} />;
   if (activeTrip)
     return <ActiveTripScreen trip={activeTrip} driverLocation={location} />;
 
