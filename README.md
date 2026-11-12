@@ -104,6 +104,7 @@ Las funciones puras se prueban con Node, sin el celular:
 node src/utils/calculateFare.test.mjs
 node src/utils/validators.test.mjs
 node src/utils/vehicleValidators.test.mjs
+node src/utils/loginValidators.test.mjs
 ```
 
 ## Uso de IA
