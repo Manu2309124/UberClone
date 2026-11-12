@@ -107,6 +107,7 @@ node src/utils/validators.test.mjs
 node src/utils/vehicleValidators.test.mjs
 node src/utils/loginValidators.test.mjs
 node src/utils/polyline.test.mjs
+node src/utils/routeProgress.test.mjs
 node src/utils/paymentStatus.test.mjs
 ```
 
