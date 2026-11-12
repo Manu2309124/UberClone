@@ -1,7 +1,11 @@
-// AI-assisted: see docs/AI_LOG.md #18
+// AI-assisted: see docs/AI_LOG.md #18, #23
 import { useRef } from "react";
 import { ScrollView, View, Text, StyleSheet } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
+import {
+  paymentStatusLabel,
+  PAYMENT_METHOD_LABEL,
+} from "../utils/paymentStatus";
 
 const money = (n) => `$${n.toLocaleString("es-CO")}`;
 
@@ -48,7 +52,9 @@ export default function TripDetailScreen({ route }) {
         <Text>Propina: {money(trip.tip || 0)}</Text>
         <Text>Ganancia neta: {money(trip.driverEarnings)}</Text>
         <Text>
-          Pago: {trip.paymentMethod} · {trip.paymentStatus ?? trip.status}
+          Pago:{" "}
+          {PAYMENT_METHOD_LABEL[trip.paymentMethod] ?? trip.paymentMethod} ·{" "}
+          {paymentStatusLabel(trip)}
         </Text>
         <Text>
           Calificación del pasajero:{" "}

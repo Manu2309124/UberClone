@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #19, #22
+// AI-assisted: see docs/AI_LOG.md #19, #22, #23
 import { useState, useEffect } from "react";
 import {
   View,
@@ -33,6 +33,15 @@ export default function HomeScreen() {
   const activeTrip = useActiveTrip(user?.uid);
   const driving = Boolean(activeTrip) && activeTrip.status !== "completed";
 
+  // The summary stays open after the trip is paid, until the driver closes it
+  const [summaryTripId, setSummaryTripId] = useState(null);
+  useEffect(() => {
+    if (activeTrip?.status === "completed") setSummaryTripId(activeTrip.id);
+  }, [activeTrip?.id, activeTrip?.status]);
+  const shownSummaryId =
+    summaryTripId ??
+    (activeTrip?.status === "completed" ? activeTrip.id : null);
+
   // Location is tracked while available and during a trip, so the car moves
   const { location, error } = useDriverLocation(
     user?.uid,
@@ -60,8 +69,13 @@ export default function HomeScreen() {
   if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" />;
 
   // Active trip screens replace the home screen
-  if (activeTrip?.status === "completed")
-    return <TripSummaryScreen trip={activeTrip} />;
+  if (shownSummaryId)
+    return (
+      <TripSummaryScreen
+        tripId={shownSummaryId}
+        onClose={() => setSummaryTripId(null)}
+      />
+    );
   if (activeTrip)
     return <ActiveTripScreen trip={activeTrip} driverLocation={location} />;
 

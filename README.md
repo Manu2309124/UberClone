@@ -106,6 +106,7 @@ node src/utils/calculateFare.test.mjs
 node src/utils/validators.test.mjs
 node src/utils/vehicleValidators.test.mjs
 node src/utils/polyline.test.mjs
+node src/utils/paymentStatus.test.mjs
 ```
 
 ## Uso de IA

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #18
+// AI-assisted: see docs/AI_LOG.md #18, #23
 import { useMemo, useState } from "react";
 import {
   View,
@@ -10,6 +10,10 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import DateField from "../components/DateField";
+import {
+  paymentStatusLabel,
+  PAYMENT_METHOD_LABEL,
+} from "../utils/paymentStatus";
 import { useTripHistory } from "../hooks/useTripHistory";
 import { useAuth } from "../context/AuthContext";
 
@@ -113,7 +117,9 @@ export default function HistoryScreen() {
                 {money(item.driverEarnings)}
               </Text>
               <Text>
-                Estado: {item.status} · Pago: {item.paymentMethod}
+                Pago: {PAYMENT_METHOD_LABEL[item.paymentMethod] ??
+                  item.paymentMethod}{" "}
+                · {paymentStatusLabel(item)}
               </Text>
             </Pressable>
           )}

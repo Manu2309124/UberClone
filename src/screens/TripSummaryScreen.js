@@ -1,15 +1,38 @@
-// AI-assisted: see docs/AI_LOG.md #16, #20
+// AI-assisted: see docs/AI_LOG.md #16, #20, #23
 import { useState } from "react";
-import { View, Text, Button, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  Button,
+  ActivityIndicator,
+  StyleSheet,
+} from "react-native";
 import { markPaidCash } from "../services/trips";
 import { openPaymentLink } from "../services/payments";
+import { useTrip } from "../hooks/useTrip";
+import { paymentStatusLabel } from "../utils/paymentStatus";
 
 const money = (n) => `$${n.toLocaleString("es-CO")}`;
 
-export default function TripSummaryScreen({ trip }) {
-  const isCash = trip.paymentMethod === "cash";
+const STATUS_COLOR = {
+  Aprobado: "#2e7d32",
+  Efectivo: "#2e7d32",
+  Rechazado: "#c62828",
+};
+
+// Listens to the trip in real time, so the payment result appears here
+// as soon as the backend (or the driver, for cash) records it.
+export default function TripSummaryScreen({ tripId, onClose }) {
+  const trip = useTrip(tripId);
   const [opening, setOpening] = useState(false);
   const [error, setError] = useState(null);
+
+  if (!trip) return <ActivityIndicator style={{ flex: 1 }} size="large" />;
+
+  const isCash = trip.paymentMethod === "cash";
+  const paid = trip.status === "paid";
+  const rejected = trip.paymentStatus === "rejected";
+  const label = paymentStatusLabel(trip);
 
   const payOnline = async () => {
     setOpening(true);
@@ -25,7 +48,9 @@ export default function TripSummaryScreen({ trip }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Viaje finalizado</Text>
+      <Text style={styles.title}>
+        {paid ? "Cobro confirmado" : "Viaje finalizado"}
+      </Text>
       <Text>Tarifa final: {money(trip.fare)}</Text>
       <Text>
         Comisión ({Math.round(trip.commissionRate * 100)} %):{" "}
@@ -35,20 +60,34 @@ export default function TripSummaryScreen({ trip }) {
       <Text style={styles.earn}>
         Ganancia neta: {money(trip.driverEarnings)}
       </Text>
-      <Text>
-        Método de pago: {isCash ? "Efectivo" : "Mercado Pago"}
+      <Text>Método de pago: {isCash ? "Efectivo" : "Mercado Pago"}</Text>
+      <Text style={[styles.status, { color: STATUS_COLOR[label] ?? "#333" }]}>
+        Estado del pago: {label}
       </Text>
-      <Text>Estado del pago: {trip.paymentStatus ?? "Pendiente"}</Text>
 
-      {isCash ? (
+      {paid ? (
+        <Button title="Continuar" onPress={onClose} />
+      ) : isCash ? (
         <Button
           title="Cobro recibido (efectivo)"
           onPress={() => markPaidCash(trip.id)}
         />
       ) : (
         <>
+          {rejected ? (
+            <Text style={styles.error}>
+              El pago fue rechazado. Pide al pasajero que intente con otro
+              medio de pago.
+            </Text>
+          ) : null}
           <Button
-            title={opening ? "Abriendo..." : "Abrir link de pago"}
+            title={
+              opening
+                ? "Abriendo..."
+                : rejected
+                  ? "Abrir un nuevo link de pago"
+                  : "Abrir link de pago"
+            }
             disabled={opening}
             onPress={payOnline}
           />
@@ -66,6 +105,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, padding: 24, justifyContent: "center", gap: 8 },
   title: { fontSize: 24, fontWeight: "bold" },
   earn: { fontSize: 18, fontWeight: "600", color: "#2e7d32" },
+  status: { fontSize: 16, fontWeight: "600" },
   hint: { color: "#666", marginTop: 12 },
   error: { color: "#c62828" },
 });
