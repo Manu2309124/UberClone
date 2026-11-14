@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #20
+// AI-assisted: see docs/AI_LOG.md #20, #23
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
@@ -75,18 +75,24 @@ app.post("/webhook", async (req, res) => {
       headers: mpHeaders,
     });
     const payment = await r.json();
-    if (payment.status !== "approved") return;
+    if (!r.ok || !payment.external_reference) return;
 
-    await db
-      .collection("trips")
-      .doc(payment.external_reference)
-      .update({
+    const tripRef = db.collection("trips").doc(payment.external_reference);
+    const base = { paymentMethod: "mercadopago", paymentId: String(paymentId) };
+
+    if (payment.status === "approved") {
+      await tripRef.update({
+        ...base,
         status: "paid",
-        paymentMethod: "mercadopago",
         paymentStatus: "approved",
-        paymentId: String(paymentId),
         paidAt: FieldValue.serverTimestamp(),
       });
+    } else if (["rejected", "cancelled"].includes(payment.status)) {
+      // The trip stays "completed" so the driver can open a new payment link
+      await tripRef.update({ ...base, paymentStatus: "rejected" });
+    } else if (["pending", "in_process", "authorized"].includes(payment.status)) {
+      await tripRef.update({ ...base, paymentStatus: "pending" });
+    }
   } catch (e) {
     console.log("webhook error", e);
   }

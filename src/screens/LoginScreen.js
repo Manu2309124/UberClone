@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #21
+// AI-assisted: see docs/AI_LOG.md #21, #31
 import { useState } from "react";
 import {
   View,
@@ -16,7 +16,8 @@ import {
 } from "firebase/auth";
 import { auth } from "../config/firebase";
 import FormField from "../components/FormField";
-import { validateLogin, loginErrorMessage } from "../utils/loginValidators";
+import { validateLogin, loginErrorKey } from "../utils/loginValidators";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
@@ -25,6 +26,7 @@ export default function LoginScreen({ navigation }) {
   const [authError, setAuthError] = useState(null);
   const [info, setInfo] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { t } = useLanguage();
 
   // No navigation after login: AuthContext sees the new user and
   // RootNavigator switches to the Drawer on its own.
@@ -39,7 +41,7 @@ export default function LoginScreen({ navigation }) {
     try {
       await signInWithEmailAndPassword(auth, email.trim(), password);
     } catch (e) {
-      setAuthError(loginErrorMessage(e.code));
+      setAuthError(loginErrorKey(e.code));
       setLoading(false);
     }
   };
@@ -52,9 +54,9 @@ export default function LoginScreen({ navigation }) {
     if (found.email) return;
     try {
       await sendPasswordResetEmail(auth, email.trim());
-      setInfo("Si el correo está registrado, te llegará un enlace para cambiar la contraseña.");
+      setInfo("login.resetSent");
     } catch (e) {
-      setAuthError(loginErrorMessage(e.code));
+      setAuthError(loginErrorKey(e.code));
     }
   };
 
@@ -63,43 +65,43 @@ export default function LoginScreen({ navigation }) {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <Text style={styles.title}>UberClone Conductor</Text>
-      <Text style={styles.subtitle}>Inicia sesión para recibir viajes</Text>
+      <Text style={styles.title}>{t("login.title")}</Text>
+      <Text style={styles.subtitle}>{t("login.subtitle")}</Text>
 
       <FormField
-        label="Correo electrónico"
+        label={t("login.email")}
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
         autoComplete="email"
-        error={errors.email}
+        error={errors.email && t(errors.email)}
       />
       <FormField
-        label="Contraseña"
+        label={t("login.password")}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
         autoComplete="password"
-        error={errors.password}
+        error={errors.password && t(errors.password)}
       />
 
-      {authError ? <Text style={styles.error}>{authError}</Text> : null}
-      {info ? <Text style={styles.info}>{info}</Text> : null}
+      {authError ? <Text style={styles.error}>{t(authError)}</Text> : null}
+      {info ? <Text style={styles.info}>{t(info)}</Text> : null}
 
       {loading ? (
         <ActivityIndicator size="large" />
       ) : (
-        <Button title="Iniciar sesión" onPress={login} />
+        <Button title={t("login.submit")} onPress={login} />
       )}
 
       <Pressable onPress={resetPassword} style={styles.link}>
-        <Text style={styles.linkText}>¿Olvidaste tu contraseña?</Text>
+        <Text style={styles.linkText}>{t("login.forgot")}</Text>
       </Pressable>
       <Pressable
         onPress={() => navigation.navigate("Registro")}
         style={styles.link}
       >
-        <Text style={styles.linkText}>¿No tienes cuenta? Regístrate</Text>
+        <Text style={styles.linkText}>{t("login.register")}</Text>
       </Pressable>
     </KeyboardAvoidingView>
   );

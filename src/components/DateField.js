@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { View, Text, Button, StyleSheet, Platform } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function DateField({
   label,
@@ -11,6 +12,7 @@ export default function DateField({
   minimumDate,
 }) {
   const [show, setShow] = useState(false);
+  const { t, locale } = useLanguage();
 
   const handleChange = (event, selected) => {
     if (Platform.OS === "android") setShow(false);
@@ -21,7 +23,7 @@ export default function DateField({
     <View style={styles.wrapper}>
       <Text style={styles.label}>{label}</Text>
       <Button
-        title={value ? value.toLocaleDateString("es-CO") : "Seleccionar fecha"}
+        title={value ? value.toLocaleDateString(locale) : t("field.selectDate")}
         onPress={() => setShow(true)}
       />
       {show && (

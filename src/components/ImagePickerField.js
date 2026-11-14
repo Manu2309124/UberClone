@@ -1,8 +1,10 @@
 // AI-assisted: see docs/AI_LOG.md #5
 import { View, Text, Image, Button, StyleSheet } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function ImagePickerField({ label, uri, error, onPick }) {
+  const { t } = useLanguage();
   const pickFromCamera = async () => {
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) return;
@@ -29,8 +31,8 @@ export default function ImagePickerField({ label, uri, error, onPick }) {
       <Text style={styles.label}>{label}</Text>
       {uri ? <Image source={{ uri }} style={styles.preview} /> : null}
       <View style={styles.row}>
-        <Button title="Cámara" onPress={pickFromCamera} />
-        <Button title="Galería" onPress={pickFromGallery} />
+        <Button title={t("field.camera")} onPress={pickFromCamera} />
+        <Button title={t("field.gallery")} onPress={pickFromGallery} />
       </View>
       {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>

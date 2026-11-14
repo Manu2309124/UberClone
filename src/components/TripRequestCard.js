@@ -1,11 +1,14 @@
 // AI-assisted: see docs/AI_LOG.md #14
 import { useEffect, useState, useCallback } from "react";
 import { View, Text, Button, StyleSheet } from "react-native";
+import { useLanguage } from "../context/LanguageContext";
+import { paymentMethodLabel } from "../utils/paymentStatus";
 
 const TIMEOUT_SECONDS = 15;
 
 export default function TripRequestCard({ trip, onAccept, onReject }) {
   const [seconds, setSeconds] = useState(TIMEOUT_SECONDS);
+  const { t, money, language } = useLanguage();
 
   useEffect(() => {
     setSeconds(TIMEOUT_SECONDS);
@@ -21,28 +24,41 @@ export default function TripRequestCard({ trip, onAccept, onReject }) {
     if (seconds <= 0) handleReject();
   }, [seconds, handleReject]);
 
-  const money = (n) => `$${n.toLocaleString("es-CO")}`;
 
   return (
     <View style={styles.card}>
       <Text style={styles.title}>
-        Nueva solicitud · {Math.max(seconds, 0)} s
-      </Text>
-      <Text>Origen: {trip.origin.address}</Text>
-      <Text>Destino: {trip.destination.address}</Text>
-      <Text>
-        Distancia: {trip.distanceKm} km · {trip.durationMin} min
+        {t("request.title", { seconds: Math.max(seconds, 0) })}
       </Text>
       <Text>
-        Categoría: {trip.category} · Pago: {trip.paymentMethod}
+        {t("common.origin")}: {trip.origin.address}
       </Text>
-      <Text>Tarifa estimada: {money(trip.fare)}</Text>
+      <Text>
+        {t("common.destination")}: {trip.destination.address}
+      </Text>
+      <Text>
+        {t("common.distanceDuration", {
+          km: trip.distanceKm,
+          min: trip.durationMin,
+        })}
+      </Text>
+      <Text>
+        {t("request.categoryPayment", {
+          category: t(`category.${trip.category}`),
+          method: paymentMethodLabel(trip.paymentMethod, language),
+        })}
+      </Text>
+      <Text>{t("request.estimatedFare", { amount: money(trip.fare) })}</Text>
       <Text style={styles.earn}>
-        Tu ganancia neta: {money(trip.driverEarnings)}
+        {t("request.yourEarnings", { amount: money(trip.driverEarnings) })}
       </Text>
       <View style={styles.row}>
-        <Button title="Rechazar" color="#d32f2f" onPress={handleReject} />
-        <Button title="Aceptar" onPress={handleAccept} />
+        <Button
+          title={t("request.reject")}
+          color="#d32f2f"
+          onPress={handleReject}
+        />
+        <Button title={t("request.accept")} onPress={handleAccept} />
       </View>
     </View>
   );

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #16
+// AI-assisted: see docs/AI_LOG.md #16, #33
 import {
   addDoc,
   collection,
@@ -9,14 +9,26 @@ import {
 import { db } from "../config/firebase";
 import { calculateFare } from "../utils/calculateFare";
 import { PRICING } from "../config/pricing";
+import { fetchRoute } from "./directions";
 
 // Creates a fake passenger request so the driver app can be tested.
 export async function createFakeTrip(
   category = "economy",
   paymentMethod = "cash",
 ) {
-  const distanceKm = 8.5;
-  const durationMin = 22;
+  // Distance and duration from Google, asked once when the request is created
+  let distanceKm = 8.5;
+  let durationMin = 22;
+  try {
+    const route = await fetchRoute(
+      { latitude: 6.3031, longitude: -75.5489 },
+      { latitude: 6.2442, longitude: -75.5812 },
+    );
+    distanceKm = Math.round(route.distanceMeters / 100) / 10;
+    durationMin = Math.round(parseInt(route.duration, 10) / 60);
+  } catch (e) {
+    console.log("route", e.message); // keep the example values
+  }
   const { fare, commission, driverEarnings } = calculateFare({
     distanceKm,
     durationMin,
@@ -64,6 +76,18 @@ export function updateTripStatus(tripId, status) {
   const extra =
     status === "completed" ? { completedAt: serverTimestamp() } : {};
   return updateDoc(doc(db, "trips", tripId), { status, ...extra });
+}
+
+// Saves the route the trip followed (encoded polyline from Google), so the
+// history can draw it with its curves without asking Google again.
+export function saveTripRoute(tripId, route) {
+  return updateDoc(doc(db, "trips", tripId), {
+    route: {
+      polyline: route.polyline,
+      distanceMeters: route.distanceMeters ?? null,
+      duration: route.duration ?? null,
+    },
+  });
 }
 
 // Cash payment: the driver confirms the money was received.

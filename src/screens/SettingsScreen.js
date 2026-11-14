@@ -1,44 +1,29 @@
-// AI-assisted: see docs/AI_LOG.md #19
-import { useEffect, useState } from "react";
+// AI-assisted: see docs/AI_LOG.md #19, #31
 import { View, Text, Button, StyleSheet } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { doc, updateDoc } from "firebase/firestore";
-import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 
+// The language is saved by LanguageContext in AsyncStorage (a preference,
+// never sensitive data) and in the driver profile.
 export default function SettingsScreen() {
-  const { user, logout } = useAuth();
-  const [language, setLanguage] = useState("es");
-
-  // AsyncStorage is only for preferences, never sensitive data
-  useEffect(() => {
-    AsyncStorage.getItem("language").then((v) => v && setLanguage(v));
-  }, []);
-
-  const changeLanguage = async (lang) => {
-    setLanguage(lang);
-    await AsyncStorage.setItem("language", lang);
-    if (user)
-      updateDoc(doc(db, "drivers", user.uid), {
-        "personal.language": lang,
-      }).catch(() => {});
-  };
+  const { logout } = useAuth();
+  const { t, language, setLanguage } = useLanguage();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.section}>Idioma</Text>
+      <Text style={styles.section}>{t("settings.language")}</Text>
       <View style={styles.row}>
         <Button
           title={language === "es" ? "✓ Español" : "Español"}
-          onPress={() => changeLanguage("es")}
+          onPress={() => setLanguage("es")}
         />
         <Button
           title={language === "en" ? "✓ English" : "English"}
-          onPress={() => changeLanguage("en")}
+          onPress={() => setLanguage("en")}
         />
       </View>
-      <Text style={styles.section}>Sesión</Text>
-      <Button title="Cerrar sesión" color="#d32f2f" onPress={logout} />
+      <Text style={styles.section}>{t("settings.session")}</Text>
+      <Button title={t("settings.logout")} color="#d32f2f" onPress={logout} />
     </View>
   );
 }
