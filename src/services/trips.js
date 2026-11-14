@@ -66,6 +66,18 @@ export function updateTripStatus(tripId, status) {
   return updateDoc(doc(db, "trips", tripId), { status, ...extra });
 }
 
+// Saves the route the trip followed (encoded polyline from Google), so the
+// history can draw it with its curves without asking Google again.
+export function saveTripRoute(tripId, route) {
+  return updateDoc(doc(db, "trips", tripId), {
+    route: {
+      polyline: route.polyline,
+      distanceMeters: route.distanceMeters ?? null,
+      duration: route.duration ?? null,
+    },
+  });
+}
+
 // Cash payment: the driver confirms the money was received.
 export function markPaidCash(tripId) {
   return updateDoc(doc(db, "trips", tripId), {

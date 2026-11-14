@@ -1,8 +1,8 @@
-// AI-assisted: see docs/AI_LOG.md #15, #22, #30, #31
+// AI-assisted: see docs/AI_LOG.md #15, #22, #30, #31, #32
 import { useEffect, useRef, useState } from "react";
 import { View, Text, Button, StyleSheet } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
-import { updateTripStatus } from "../services/trips";
+import { updateTripStatus, saveTripRoute } from "../services/trips";
 import { useRoute } from "../hooks/useRoute";
 import { useSimulatedDrive } from "../hooks/useSimulatedDrive";
 import CarMarker from "../components/CarMarker";
@@ -68,6 +68,14 @@ function ActiveTrip({ trip, driverLocation }) {
   const simulated = useSimulatedDrive(route?.coordinates, simulating);
   const carPosition = simulated ?? driverLocation;
 
+  // Save the real route of the trip (pickup -> destination) for the history
+  const savedRoute = useRef(false);
+  useEffect(() => {
+    if (leg !== "dropoff" || !route?.polyline || savedRoute.current) return;
+    savedRoute.current = true;
+    saveTripRoute(trip.id, route).catch((e) => console.log(e.code));
+  }, [leg, route, trip.id]);
+
   // A new leg starts with the simulation off
   useEffect(() => setSimulating(false), [leg]);
 
@@ -111,6 +119,11 @@ function ActiveTrip({ trip, driverLocation }) {
       <View style={styles.panel}>
         <Text style={styles.title}>{step ? t(step.title) : null}</Text>
         <Text>{t("trip.towards", { address: target.address })}</Text>
+        {__DEV__ && route?.error ? (
+          <Text style={styles.devHint}>
+            {t("trip.routeError", { error: route.error })}
+          </Text>
+        ) : null}
         {route?.distanceMeters ? (
           <Text>
             {t("trip.routeInfo", {
@@ -149,4 +162,5 @@ const styles = StyleSheet.create({
   map: { flex: 1 },
   panel: { padding: 16, gap: 8, backgroundColor: "#fff" },
   title: { fontSize: 18, fontWeight: "bold" },
+  devHint: { color: "#b26a00", fontSize: 12 },
 });

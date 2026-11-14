@@ -103,6 +103,7 @@ export const STRINGS = {
     "trip.routeInfo": "{km} km · {min} min",
     "trip.simulate": "Simular recorrido",
     "trip.stopSimulation": "Detener simulación",
+    "trip.routeError": "Ruta aproximada (Google no respondió): {error}",
 
     // Summary
     "summary.finished": "Viaje finalizado",
@@ -281,6 +282,7 @@ export const STRINGS = {
     "trip.routeInfo": "{km} km · {min} min",
     "trip.simulate": "Simulate drive",
     "trip.stopSimulation": "Stop simulation",
+    "trip.routeError": "Approximate route (Google did not answer): {error}",
 
     "summary.finished": "Trip finished",
     "summary.confirmed": "Payment confirmed",

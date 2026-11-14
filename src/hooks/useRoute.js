@@ -1,11 +1,12 @@
-// AI-assisted: see docs/AI_LOG.md #22
+// AI-assisted: see docs/AI_LOG.md #22, #32
 import { useEffect, useRef, useState } from "react";
 import { fetchRoute } from "../services/directions";
 
 // Fetches the route for one trip leg. `legKey` identifies the leg
 // (for example "abc123-pickup"); the route is only requested again when the
 // leg changes, not every time `from` moves. If Google fails, it falls back
-// to a straight line so the map still works.
+// to a straight line so the map still works, and keeps the reason in
+// `route.error`.
 export function useRoute(legKey, from, to) {
   const [route, setRoute] = useState(null);
   const fromRef = useRef(from);
@@ -22,7 +23,10 @@ export function useRoute(legKey, from, to) {
       .then((r) => {
         if (!ignore) setRoute(r);
       })
-      .catch((e) => console.log("route", e.message));
+      .catch((e) => {
+        console.log("route", e.message);
+        if (!ignore) setRoute((r) => (r ? { ...r, error: e.message } : r));
+      });
 
     return () => {
       ignore = true;

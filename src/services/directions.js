@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #22
+// AI-assisted: see docs/AI_LOG.md #22, #32
 import { decodePolyline } from "../utils/polyline";
 
 // Google Routes API (computeRoutes) replaces the legacy Directions API,
@@ -37,6 +37,7 @@ export async function fetchRoute(from, to) {
   if (!route) throw new Error("Google no encontró una ruta");
   return {
     coordinates: decodePolyline(route.polyline.encodedPolyline),
+    polyline: route.polyline.encodedPolyline, // saved in the trip for the history
     distanceMeters: route.distanceMeters,
     duration: route.duration, // e.g. "1320s"
   };
